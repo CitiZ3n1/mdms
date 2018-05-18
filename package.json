@@ -1,0 +1,15 @@
+{
+  "name": "mdms",
+  "version": "0.0.1",
+  "description": "Massively Distributed Micro Server Application Framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Citizen One",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CitiZ3n1/mdms.git"
+  }
+}
