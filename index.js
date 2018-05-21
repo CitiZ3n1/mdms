@@ -90,7 +90,7 @@ for (let i = 0; i < serverConfigs.length; i += 1) {
     // Retry on error
     config.socket.on('error', (e) => {
       console.log('Can not connect to server: ', e);
-      console.log(util.inspect(connect()));
+      console.log('Connect: ', util.inspect(connect()));
       if (config.connected === true) {
         config.connected = false;
       }
@@ -109,5 +109,7 @@ for (let i = 0; i < serverConfigs.length; i += 1) {
         config.connected = setInterval(connect(config), 5000);
       }
     });
+
+    connect(config);
   }
 }
