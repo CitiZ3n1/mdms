@@ -61,7 +61,7 @@ server.listen(serverConfig.port, `${serverConfig.hostname}.local`, () => {
   console.log('Server: Listening');
 });
 
-const createSocket = (config) => {
+function createSocket(config) {
   // TODO don't mutuate the passed in config...
   config.socket.connect(config.port, `${config.hostname}.local`, () => {
     console.log('Client: Connected to server');
@@ -86,7 +86,7 @@ const createSocket = (config) => {
       config.connected = false;
     }
     if (config.connected === false) {
-      config.connected = setInterval(this(config), 5000);
+      config.connected = setInterval(createSocket(config), 5000);
     }
   });
 
