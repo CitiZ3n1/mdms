@@ -63,56 +63,51 @@ server.listen(serverConfig.port, `${serverConfig.hostname}.local`, () => {
 });
 
 const connect = (config) => {
-  config.socket.connect(config.port, `${config.hostname}.local`, () => {
-    console.log('Client: Connected to server');
-    clearInterval(config.connected);
-    config.connected = true;
-  });
-  return config;
-};
-
-const createSocket = (config) => {
-  // TODO don't mutuate the passed in config...
-  config = connect(config);
-
-  // Let's handle the data we get from the server
-  config.socket.on('data', (d) => {
-    const data = JSON.parse(d);
-    console.log('Response from server: %s', data.response);
-    // Respond back
-    config.socket.write(JSON.stringify({ response: 'Hey there server!' }));
-    // Close the connection
-    config.socket.end();
-  });
-
-  // Retry on error
-  config.socket.on('error', (e) => {
-    console.log('Can not connect to server: ', e);
-    console.log(util.inspect(connect()));
-    if (config.connected === true) {
-      config.connected = false;
-    }
-    if (config.connected === false) {
-      config.connected = setInterval(() => { connect(config); }, 5000);
-    }
-  });
-
-  // If the connection is close reconnect
-  config.socket.on('close', () => {
-    console.log('Connection Closed');
-    if (config.connected === true) {
-      config.connected = false;
-    }
-    if (config.connected === false) {
-      config.connected = setInterval(connect(config), 5000);
-    }
-  });
+  config.socket.connect({ port: config.port, hostname: `${config.hostname}.local` });
 };
 
 // Create a socket to each server
-serverConfigs.forEach((config) => {
-  if (config.hostname !== hostname) {
+for (let i = 0; i < serverConfigs.length; i += 1) {
+  if (serverConfigs[i].hostname !== hostname) {
+    const config = serverConfigs[i];
     config.socket = new net.Socket();
-    createSocket(config);
+    config.socket.on('connect', () => {
+      console.log('Client: Connected to server');
+      clearInterval(config.connected);
+      config.connected = true;
+    });
+
+    // Let's handle the data we get from the server
+    config.socket.on('data', (d) => {
+      const data = JSON.parse(d);
+      console.log('Response from server: %s', data.response);
+      // Respond back
+      config.socket.write(JSON.stringify({ response: 'Hey there server!' }));
+      // Close the connection
+      config.socket.end();
+    });
+
+    // Retry on error
+    config.socket.on('error', (e) => {
+      console.log('Can not connect to server: ', e);
+      console.log(util.inspect(connect()));
+      if (config.connected === true) {
+        config.connected = false;
+      }
+      if (config.connected === false) {
+        config.connected = setInterval(connect(config), 5000);
+      }
+    });
+
+    // If the connection is close reconnect
+    config.socket.on('close', () => {
+      console.log('Connection Closed');
+      if (config.connected === true) {
+        config.connected = false;
+      }
+      if (config.connected === false) {
+        config.connected = setInterval(connect(config), 5000);
+      }
+    });
   }
-});
+}
