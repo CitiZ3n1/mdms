@@ -86,7 +86,7 @@ function createSocket(config) {
       config.connected = false;
     }
     if (config.connected === false) {
-      config.connected = setInterval(createSocket(config), 5000);
+      config.connected = setInterval(this(config), 5000);
     }
   });
 
@@ -97,10 +97,10 @@ function createSocket(config) {
       config.connected = false;
     }
     if (config.connected === false) {
-      config.connected = setInterval(createSocket(config), 5000);
+      config.connected = setInterval(this(config), 5000);
     }
   });
-};
+}
 
 // Create a socket to each server
 serverConfigs.forEach((config) => {
