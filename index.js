@@ -62,8 +62,8 @@ server.listen(serverConfig.port, `${serverConfig.hostname}.local`, () => {
   console.log('Server: Listening');
 });
 
-const connect = (config) => {
-  config.socket.connect({ port: config.port, hostname: `${config.hostname}.local` });
+const connect = (config, index) => {
+  serverConfigs[index].socket.connect({ port: config.port, hostname: `${config.hostname}.local` });
 };
 
 // Create a socket to each server
@@ -113,6 +113,6 @@ for (let i = 0; i < serverConfigs.length; i += 1) {
 
     serverConfigs[i].socket = socket;
 
-    connect(config);
+    connect(config, i);
   }
 }
