@@ -7,19 +7,19 @@ console.log(hostname);
 
 const serverConfigs = [
   {
-    hostname: 'mdms1.local',
+    hostname: 'mdms1',
     port: 49152,
   },
   {
-    hostname: 'mdms2.local',
+    hostname: 'mdms2',
     port: 49153,
   },
   {
-    hostname: 'mdms3.local',
+    hostname: 'mdms3',
     port: 49154,
   },
   {
-    hostname: 'mdms4.local',
+    hostname: 'mdms4',
     port: 49155,
   },
 ];
