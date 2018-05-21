@@ -1,6 +1,5 @@
 const net = require('net');
 const os = require('os');
-const util = require('util');
 const _ = require('lodash');
 
 const hostname = os.hostname();
@@ -9,24 +8,28 @@ console.log(hostname);
 const serverConfigs = [
   {
     hostname: 'mdms1',
+    ip: '192.168.1.22',
     port: 49152,
     connected: false,
     socket: {}
   },
   {
     hostname: 'mdms2',
+    ip: '192.168.1.15',
     port: 49153,
     connected: false,
     socket: {}
   },
   {
     hostname: 'mdms3',
+    ip: '192.168.1.23',
     port: 49154,
     connected: false,
     socket: {}
   },
   {
     hostname: 'mdms4',
+    ip: '192.168.1.21',
     port: 49155,
     connected: false,
     socket: {}
@@ -58,14 +61,14 @@ const server = net.createServer((conn) => {
 
 // Listen for connections
 const serverConfig = _.find(serverConfigs, c => c.hostname === hostname);
-server.listen(serverConfig.port, `${serverConfig.hostname}.local`, () => {
+server.listen(serverConfig.port, serverConfig.ip, () => {
   console.log('Server: Listening');
 });
 
 const connect = (index) => {
   serverConfigs[index].socket.connect({
     port: serverConfigs[index].port,
-    hostname: `${serverConfigs[index].hostname}.local`
+    host: serverConfigs[index].ip
   });
 };
 
