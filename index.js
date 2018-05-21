@@ -61,13 +61,18 @@ server.listen(serverConfig.port, `${serverConfig.hostname}.local`, () => {
   console.log('Server: Listening');
 });
 
-function createSocket(config) {
-  // TODO don't mutuate the passed in config...
+const connect = (config) => {
   config.socket.connect(config.port, `${config.hostname}.local`, () => {
     console.log('Client: Connected to server');
     clearInterval(config.connected);
     config.connected = true;
   });
+  return config;
+};
+
+const createSocket = (config) => {
+  // TODO don't mutuate the passed in config...
+  config = connect(config);
 
   // Let's handle the data we get from the server
   config.socket.on('data', (d) => {
@@ -86,7 +91,7 @@ function createSocket(config) {
       config.connected = false;
     }
     if (config.connected === false) {
-      config.connected = setInterval(this(config), 5000);
+      config.connected = setInterval(connect(config), 5000);
     }
   });
 
@@ -97,10 +102,10 @@ function createSocket(config) {
       config.connected = false;
     }
     if (config.connected === false) {
-      config.connected = setInterval(this(config), 5000);
+      config.connected = setInterval(connect(config), 5000);
     }
   });
-}
+};
 
 // Create a socket to each server
 serverConfigs.forEach((config) => {
