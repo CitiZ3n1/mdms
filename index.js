@@ -86,7 +86,7 @@ const createSocket = (config) => {
       config.connected = false;
     }
     if (config.connected === false) {
-      config.connected = setInterval(createSocket(config), 5000);
+      config.connected = setInterval(this(config), 5000);
     }
   });
 
