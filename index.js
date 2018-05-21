@@ -9,18 +9,26 @@ const serverConfigs = [
   {
     hostname: 'mdms1',
     port: 49152,
+    connected: false,
+    socket: {}
   },
   {
     hostname: 'mdms2',
     port: 49153,
+    connected: false,
+    socket: {}
   },
   {
     hostname: 'mdms3',
     port: 49154,
+    connected: false,
+    socket: {}
   },
   {
     hostname: 'mdms4',
     port: 49155,
+    connected: false,
+    socket: {}
   },
 ];
 
@@ -53,22 +61,51 @@ server.listen(serverConfig.port, `${serverConfig.hostname}.local`, () => {
   console.log('Server: Listening');
 });
 
-// Create a socket (client) that connects to the server
+const createSocket = (config) => {
+  // TODO don't mutuate the passed in config...
+  config.socket.connect(config.port, `${config.hostname}.local`, () => {
+    console.log('Client: Connected to server');
+    clearInterval(config.connected);
+    config.connected = true;
+  });
+
+  // Let's handle the data we get from the server
+  config.socket.on('data', (d) => {
+    const data = JSON.parse(d);
+    console.log('Response from server: %s', data.response);
+    // Respond back
+    config.socket.write(JSON.stringify({ response: 'Hey there server!' }));
+    // Close the connection
+    config.socket.end();
+  });
+
+  // Retry on error
+  config.socket.on('error', (e) => {
+    console.log('Can not connect to server: ', e);
+    if (config.connected === true) {
+      config.connected = false;
+    }
+    if (config.connected === false) {
+      config.connected = setInterval(createSocket(config), 5000);
+    }
+  });
+
+  // If the connection is close reconnect
+  config.socket.on('close', () => {
+    console.log('Connection Closed');
+    if (config.connected === true) {
+      config.connected = false;
+    }
+    if (config.connected === false) {
+      config.connected = setInterval(createSocket(config), 5000);
+    }
+  });
+};
+
+// Create a socket to each server
 serverConfigs.forEach((config) => {
   if (config.hostname !== hostname) {
-    const socket = new net.Socket();
-    socket.connect(config.port, `${config.hostname}.local`, () => {
-      console.log('Client: Connected to server');
-    });
-
-    // Let's handle the data we get from the server
-    socket.on('data', (d) => {
-      const data = JSON.parse(d);
-      console.log('Response from server: %s', data.response);
-      // Respond back
-      socket.write(JSON.stringify({ response: 'Hey there server!' }));
-      // Close the connection
-      socket.end();
-    });
+    config.socket = new net.Socket();
+    createSocket(config);
   }
 });
