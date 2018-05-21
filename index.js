@@ -1,5 +1,6 @@
 const net = require('net');
 const os = require('os');
+const util = require('util');
 const _ = require('lodash');
 
 const hostname = os.hostname();
@@ -87,11 +88,12 @@ const createSocket = (config) => {
   // Retry on error
   config.socket.on('error', (e) => {
     console.log('Can not connect to server: ', e);
+    console.log(util.inspect(connect()));
     if (config.connected === true) {
       config.connected = false;
     }
     if (config.connected === false) {
-      config.connected = setInterval(connect(config), 5000);
+      config.connected = setInterval(() => { connect(config); }, 5000);
     }
   });
 
