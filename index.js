@@ -44,9 +44,9 @@ const server = net.createServer((conn) => {
   conn.on('end', () => {
     console.log('Server: Client disconnected');
     // Close the server
-    server.close();
+    // server.close();
     // End the process
-    process.exit(0);
+    // process.exit(0);
   });
 
   // Handle data from client
@@ -94,9 +94,6 @@ const onError = (error, index) => {
   }
   if (serverConfigs[index].connected === false && error.code === 'ECONNREFUSED') {
     serverConfigs[index].connected = setInterval(() => { connect(index); }, 5000);
-  }
-  if (error.code === 'ENOTFOUND') {
-    console.log('Don\'t try to reconnect');
   }
 };
 
