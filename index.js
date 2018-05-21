@@ -70,15 +70,16 @@ const connect = (config) => {
 for (let i = 0; i < serverConfigs.length; i += 1) {
   if (serverConfigs[i].hostname !== hostname) {
     const config = serverConfigs[i];
-    config.socket = new net.Socket();
-    config.socket.on('connect', () => {
+    const socket = new net.Socket();
+
+    socket.on('connect', () => {
       console.log('Client: Connected to server');
       clearInterval(config.connected);
       config.connected = true;
     });
 
     // Let's handle the data we get from the server
-    config.socket.on('data', (d) => {
+    socket.on('data', (d) => {
       const data = JSON.parse(d);
       console.log('Response from server: %s', data.response);
       // Respond back
@@ -88,7 +89,7 @@ for (let i = 0; i < serverConfigs.length; i += 1) {
     });
 
     // Retry on error
-    config.socket.on('error', (e) => {
+    socket.on('error', (e) => {
       console.log('Can not connect to server: ', e);
       console.log('Connect: ', util.inspect(connect()));
       if (config.connected === true) {
@@ -100,7 +101,7 @@ for (let i = 0; i < serverConfigs.length; i += 1) {
     });
 
     // If the connection is close reconnect
-    config.socket.on('close', () => {
+    socket.on('close', () => {
       console.log('Connection Closed');
       if (config.connected === true) {
         config.connected = false;
@@ -109,6 +110,8 @@ for (let i = 0; i < serverConfigs.length; i += 1) {
         config.connected = setInterval(connect(config), 5000);
       }
     });
+
+    serverConfigs[i].socket = socket;
 
     connect(config);
   }
