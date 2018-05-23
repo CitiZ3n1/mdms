@@ -12,12 +12,18 @@
     "type": "git",
     "url": "https://github.com/CitiZ3n1/mdms.git"
   },
+  "preferGlobal": true,
+  "bin": {
+      "mdms": "./index.js"
+  },
   "devDependencies": {
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.12.0"
   },
   "dependencies": {
-    "lodash": "^4.17.10"
+    "commander": "^2.15.1",
+    "lodash": "^4.17.10",
+    "redis": "^2.8.0"
   }
 }

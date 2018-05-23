@@ -1,11 +1,13 @@
-const net = require('net');
-const os = require('os');
-const _ = require('lodash');
+#!/usr/bin/env node
 
-const hostname = os.hostname();
-console.log(hostname);
+const redis = require('redis');
+const cli = require('commander');
 
-const serverConfigs = [
+const { startListening } = require('./server/server.js');
+const { startConnecting, getKey } = require('./server/connect.js');
+const { redisClient } = require('./server/redisClient.js');
+
+let serverConfigs = [
   {
     hostname: 'mdms1',
     ip: '192.168.1.22',
@@ -36,92 +38,38 @@ const serverConfigs = [
   },
 ];
 
-// Create a simple server
-const server = net.createServer((conn) => {
-  console.log('Server: Client connected');
+// Listen for connections from other nodes
+startListening(serverConfigs);
+// Connect to other nodes
+serverConfigs = startConnecting(serverConfigs);
 
-  // If connection is closed
-  conn.on('end', () => {
-    console.log('Server: Client disconnected');
-    // Close the server
-    // server.close();
-    // End the process
-    // process.exit(0);
+cli
+  .version('0.0.1')
+  .description('MDMS CLI');
+
+cli
+  .command('set <key> <value>')
+  .description('Set a value')
+  .action((key, value) => {
+    redisClient.set(key, value, redis.print);
+    redisClient.quit();
   });
 
-  // Handle data from client
-  conn.on('data', (d) => {
-    const data = JSON.parse(d);
-    console.log('Response from client: %s', data.response);
-  });
-
-  // Let's response with a hello message
-  conn.write(JSON.stringify({ response: 'Hey there client!' }));
-});
-
-// Listen for connections
-const serverConfig = _.find(serverConfigs, c => c.hostname === hostname);
-server.listen(serverConfig.port, serverConfig.ip, () => {
-  console.log('Server: Listening');
-});
-
-const connect = (index) => {
-  serverConfigs[index].socket.connect({
-    port: serverConfigs[index].port,
-    host: serverConfigs[index].ip
-  });
-};
-
-const onConnect = (index) => {
-  console.log('Client: Connected to server');
-  clearInterval(serverConfigs[index].connected);
-  serverConfigs[index].connected = true;
-};
-
-const onData = (data, index) => {
-  const json = JSON.parse(data);
-  console.log('Response from server: %s', json.response);
-  // Respond back
-  serverConfigs[index].socket.write(JSON.stringify({ response: 'Hey there server!' }));
-  // Close the connection
-  serverConfigs[index].socket.end();
-};
-
-const onError = (error, index) => {
-  console.log('Can not connect to server: ', error);
-  if (serverConfigs[index].connected === true && error.code === 'ECONNREFUSED') {
-    serverConfigs[index].connected = false;
-  }
-  if (serverConfigs[index].connected === false && error.code === 'ECONNREFUSED') {
-    serverConfigs[index].connected = setInterval(() => { connect(index); }, 5000);
-  }
-};
-
-// Create a socket to each server
-for (let index = 0; index < serverConfigs.length; index += 1) {
-  if (serverConfigs[index].hostname !== hostname) {
-    serverConfigs[index].socket = new net.Socket();
-    serverConfigs[index].socket.on('connect', () => { onConnect(index); });
-
-    // Let's handle the data we get from the server
-    serverConfigs[index].socket.on('data', (data) => { onData(data, index); });
-
-    // Retry on error
-    serverConfigs[index].socket.on('error', (error) => { onError(error, index); });
-
-    // If the connection is close reconnect
-    /*
-    serverConfigs[i].on('close', () => {
-      console.log('Connection Closed');
-      if (config.connected === true) {
-        config.connected = false;
+cli
+  .command('get <key>')
+  .description('Get value')
+  .action((key) => {
+    redisClient.get(key, (error, value) => {
+      if (error) {
+        console.log(error);
+        throw error;
       }
-      if (config.connected === false) {
-        config.connected = setInterval(connect(index), 5000);
+      if (value === null) {
+        getKey(key);
       }
+      console.log(value);
+      redisClient.quit();
     });
-    */
+  });
 
-    connect(index);
-  }
-}
+cli.parse(process.argv);
